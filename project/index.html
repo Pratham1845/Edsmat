@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MoodLens — Emotion Analytics</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet" />
+    <link href="style.css" rel="stylesheet" />
+  </head>
+  
+  <body>
+    <div class="app">
+      <!-- Header -->
+      <header class="header">
+        <div class="logo">
+          <div class="logo-mark">🧠</div>
+          <div class="logo-text">Mood<span>Lens</span></div>
+        </div>
+        <div class="header-status">
+          <div class="dot" id="status-dot"></div>
+          <span id="status-text">Loading models…</span>
+        </div>
+      </header>
+      
+      <div class="layout">
+        
+        <!-- LEFT COL -->
+        <div class="left-col">
+          
+          <!-- Camera -->
+          <div class="card">
+            <div class="card-label">Live Feed</div>
+            <video id="video" autoplay muted playsinline></video>
+          </div>
+          
+          <!-- Current emotion -->
+          <div class="card">
+            <div class="card-label">Current Emotion</div>
+            <div class="emotion-display">
+              <div class="emotion-emoji-big" id="emotion-emoji">🙂</div>
+              <div class="emotion-right">
+                <div id="emotion-name" style="color:var(--muted)">Awaiting…</div>
+                <div id="emotion-conf">—</div>
+                <div class="conf-bar">
+                  <div class="conf-fill" id="conf-fill"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+        </div>
+        
+        <!-- RIGHT COL -->
+        <div class="right-col">
+          
+          <!-- Stats -->
+          <div class="stats-grid">
+            <div class="stat">
+              <div class="stat-val" id="stat-total">0</div>
+              <div class="stat-key">Detections</div>
+            </div>
+            <div class="stat">
+              <div class="stat-val" id="stat-dominant" style="font-size:0.9rem;padding-top:0.2rem">—</div>
+              <div class="stat-key">Dominant</div>
+            </div>
+            <div class="stat">
+            <div class="stat-val" id="stat-time">0s</div>
+            <div class="stat-key">Session</div>
+          </div>
+        </div>
+        
+        <!-- Frequency bars -->
+        <div class="card">
+          <div class="card-label">Emotion Frequency</div>
+          <div class="freq-bars" id="freq-bars"></div>
+        </div>
+        
+        <!-- Timeline -->
+        <div class="card">
+          <div class="card-label">
+            Mood Timeline
+            <span style="font-size:0.6rem;color:var(--dim)">last 60 readings</span>
+          </div>
+          <div class="timeline-wrap">
+            <canvas id="timeline" width="800" height="120"></canvas>
+          </div>
+        </div>
+        
+        <!-- History -->
+        <div class="card">
+          <div class="card-label">Detection Log</div>
+          <div class="history-scroll" id="history-list">
+            <span style="color:var(--muted);font-size:0.75rem;font-family:'JetBrains Mono',monospace">No data
+              yet…</span>
+            </div>
+          </div>
+          
+          <!-- Controls -->
+          <div class="btn-row">
+            <button class="btn btn-danger" id="btn-clear">CLEAR SESSION</button>
+            <button class="btn btn-primary" id="btn-export">↓ EXPORT JSON</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+  <script src="./face-api.min.js"></script>
+  <script src="script.js"></script>
+  </html>

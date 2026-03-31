@@ -1,0 +1,17 @@
+# 🔒 Environment variables (VERY IMPORTANT)
+.env
+chat/.env
+
+# 📦 Node modules
+node_modules/
+
+# 🧠 Optional: logs
+npm-debug.log*
+
+# 🗂 OS files
+.DS_Store
+Thumbs.db
+
+# ✅ IMPORTANT: keep required model files
+!models/*.json
+!models/*shard*

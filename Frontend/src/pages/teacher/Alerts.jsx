@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+﻿import { useEffect, useMemo, useState } from 'react';
 import Sidebar from '../../components/Sidebar';
 import AlertCard from '../../components/AlertCard';
 
@@ -91,34 +91,34 @@ const Alerts = () => {
           <div className="bg-red-50 border border-red-200 rounded-xl p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-red-600 font-medium mb-1">High Risk</p>
+                <p className="text-sm text-red-600 font-medium mb-1">🔴 High Risk</p>
                 <p className="text-3xl font-bold text-red-900">
                   {alerts.filter((a) => a.severity === 'high').length}
                 </p>
               </div>
-              <span className="text-4xl">??</span>
+              <span className="text-4xl">📊</span>
             </div>
           </div>
 
           <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-yellow-600 font-medium mb-1">Medium Risk</p>
+                <p className="text-sm text-yellow-600 font-medium mb-1">🟡 Medium Risk</p>
                 <p className="text-3xl font-bold text-yellow-900">
                   {alerts.filter((a) => a.severity === 'medium').length}
                 </p>
               </div>
-              <span className="text-4xl">??</span>
+              <span className="text-4xl">📊</span>
             </div>
           </div>
 
           <div className="bg-blue-50 border border-blue-200 rounded-xl p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm text-blue-600 font-medium mb-1">Total Alerts</p>
+                <p className="text-sm text-blue-600 font-medium mb-1">📣 Total Alerts</p>
                 <p className="text-3xl font-bold text-blue-900">{alerts.length}</p>
               </div>
-              <span className="text-4xl">??</span>
+              <span className="text-4xl">📊</span>
             </div>
           </div>
         </div>
@@ -133,8 +133,8 @@ const Alerts = () => {
                 className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
               >
                 <option value="all">All Alerts</option>
-                <option value="high">High Risk Only</option>
-                <option value="medium">Medium Risk Only</option>
+                <option value="high">🔴 High Risk Only</option>
+                <option value="medium">🟡 Medium Risk Only</option>
               </select>
             </div>
             <button className="px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors">
@@ -157,7 +157,7 @@ const Alerts = () => {
 
         {!loading && filteredAlerts.length === 0 && (
           <div className="text-center py-12 bg-white rounded-xl border border-gray-200">
-            <span className="text-6xl mb-4 block">?</span>
+            <span className="text-6xl mb-4 block">🗂️</span>
             <h3 className="text-lg font-semibold text-gray-900 mb-2">No alerts found</h3>
             <p className="text-gray-600">No teacher thresholds were crossed yet.</p>
           </div>
@@ -168,3 +168,5 @@ const Alerts = () => {
 };
 
 export default Alerts;
+
+

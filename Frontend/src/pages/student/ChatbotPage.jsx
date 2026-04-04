@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import Sidebar from '../../components/Sidebar';
 import { useWebcamEmotion } from '../../context/WebcamEmotionContext';
 
-const riskBadgeStyles = {
+const supportBadgeStyles = {
   HIGH: 'bg-red-100 text-red-700 border-red-200',
   MEDIUM: 'bg-yellow-100 text-yellow-800 border-yellow-200',
   LOW: 'bg-green-100 text-green-700 border-green-200'
@@ -113,7 +113,7 @@ const ChatbotPage = () => {
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">AI Chatbot</h1>
           <p className="text-gray-600">
-            Emotion signals are taken from the background webcam detector when it is active.
+            Emotion signals are optional and are only used to personalize support when webcam check-ins are active.
           </p>
           <p className="text-xs text-gray-500 mt-1">
             Background camera: {isDetecting ? `active (${currentEmotion?.emotion || 'analyzing'})` : 'off'}
@@ -129,7 +129,7 @@ const ChatbotPage = () => {
                 </div>
                 <div>
                   <h2 className="text-white font-semibold">AI Study Assistant</h2>
-                  <p className="text-indigo-100 text-xs">Structured risk + intent insights</p>
+                  <p className="text-indigo-100 text-xs">Supportive guidance and study intent insights</p>
                 </div>
               </div>
             </div>
@@ -152,10 +152,10 @@ const ChatbotPage = () => {
                         <div className="mt-3 flex flex-wrap items-center gap-2">
                           <span
                             className={`px-2.5 py-1 text-xs font-semibold border rounded-full ${
-                              riskBadgeStyles[entry.risk_level] || riskBadgeStyles.LOW
+                              supportBadgeStyles[entry.risk_level] || supportBadgeStyles.LOW
                             }`}
                           >
-                            Risk: {entry.risk_level || 'LOW'}
+                            Support Signal: {entry.risk_level || 'LOW'}
                           </span>
                           <span className="px-2.5 py-1 text-xs font-medium border rounded-full bg-white text-gray-700 border-gray-300">
                             Confidence: {Math.round(Number(entry.confidence) || 0)}%
@@ -215,4 +215,5 @@ const ChatbotPage = () => {
 };
 
 export default ChatbotPage;
+
 

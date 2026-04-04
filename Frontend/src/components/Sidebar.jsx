@@ -5,7 +5,7 @@ const Sidebar = ({ role }) => {
 
   const studentMenuItems = [
     { name: 'Dashboard', path: '/student/dashboard', icon: '📊' },
-    { name: 'Emotion Detection', path: '/student/emotion', icon: '😊' },
+    { name: 'Wellbeing Check-ins', path: '/student/emotion', icon: '😊' },
     { name: 'AI Chatbot', path: '/student/chatbot', icon: '💬' },
     { name: 'Progress', path: '/student/progress', icon: '📈' },
     { name: 'Mentors', path: '/student/mentors', icon: '👨‍🏫' },
@@ -49,7 +49,7 @@ const Sidebar = ({ role }) => {
 
       {/* Help Section */}
       <div className="p-6 border-t border-gray-200">
-        <div className="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-lg p-4">
+        <div className="bg-linear-to-br from-indigo-50 to-purple-50 rounded-lg p-4">
           <h3 className="text-sm font-semibold text-gray-900 mb-1">Need Help?</h3>
           <p className="text-xs text-gray-600 mb-3">Contact support team</p>
           <button className="w-full px-3 py-2 bg-indigo-600 text-white text-xs font-medium rounded-lg hover:bg-indigo-700 transition-colors">
@@ -62,3 +62,4 @@ const Sidebar = ({ role }) => {
 };
 
 export default Sidebar;
+

@@ -57,9 +57,9 @@ const EmotionPage = () => {
 
       <main className="flex-1 p-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Emotion Detection</h1>
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Wellbeing Check-ins</h1>
           <p className="text-gray-600">
-            Webcam keeps detecting in background across pages. This screen shows the live camera feed and rolling emotion history.
+            Optional webcam support can help you reflect on your mood trend. This page shows your live check-ins and recent wellbeing snapshots.
           </p>
         </div>
 
@@ -88,7 +88,7 @@ const EmotionPage = () => {
                   <div className="text-center text-gray-300 px-6">
                     <span className="text-5xl mb-4 block">CAM</span>
                     <p className="font-semibold">Camera is off</p>
-                    <p className="text-xs mt-2 text-gray-400">Start detection to enable background + live preview.</p>
+                    <p className="text-xs mt-2 text-gray-400">Start check-ins when you want extra reflection support.</p>
                   </div>
                 </div>
               )}
@@ -226,4 +226,5 @@ const EmotionPage = () => {
 };
 
 export default EmotionPage;
+
 

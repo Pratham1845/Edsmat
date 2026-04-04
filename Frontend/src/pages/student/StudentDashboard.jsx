@@ -43,7 +43,7 @@ const StudentDashboard = () => {
             onClick={handleLogout}
             className="flex items-center space-x-2 px-5 py-2.5 bg-gradient-to-r from-red-500 to-red-600 text-white font-medium rounded-lg hover:from-red-600 hover:to-red-700 transition-all shadow-md hover:shadow-lg"
           >
-            <span>🚪</span>
+            <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" y1="12" x2="9" y2="12" /></svg>
             <span>Logout</span>
           </button>
         </div>
@@ -123,7 +123,7 @@ const StudentDashboard = () => {
           <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-6 border border-green-200">
             <h3 className="text-lg font-bold text-gray-900 mb-2">Start Emotion Detection</h3>
             <p className="text-sm text-gray-600 mb-4">Track your emotions during study sessions</p>
-            <button className="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors">
+            <button onClick={() => navigate('/student/emotion')} className="px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors">
               Launch Camera →
             </button>
           </div>
@@ -131,7 +131,7 @@ const StudentDashboard = () => {
           <div className="bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl p-6 border border-blue-200">
             <h3 className="text-lg font-bold text-gray-900 mb-2">Chat with AI Assistant</h3>
             <p className="text-sm text-gray-600 mb-4">Get help with your questions 24/7</p>
-            <button className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
+            <button onClick={() => navigate('/student/chatbot')} className="px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
               Start Chat →
             </button>
           </div>
@@ -142,3 +142,7 @@ const StudentDashboard = () => {
 };
 
 export default StudentDashboard;
+
+
+
+

@@ -11,6 +11,8 @@ const studentInteractionSchema = new mongoose.Schema(
       default: "NORMAL"
     },
     risk_level: { type: String, enum: ["HIGH", "MEDIUM", "LOW"], default: "LOW" },
+    risk_percentage: { type: Number, min: 0, max: 100, default: 0 },
+    teacher_alert_sent: { type: Boolean, default: false },
     confidence: { type: Number, min: 0, max: 100, default: 50 },
     reason: { type: String, default: "" },
     recommended_action: { type: String, default: "" },
@@ -23,6 +25,8 @@ const studentInteractionSchema = new mongoose.Schema(
 
 studentInteractionSchema.index({ createdAt: -1 });
 studentInteractionSchema.index({ risk_level: 1 });
+studentInteractionSchema.index({ risk_percentage: -1 });
+studentInteractionSchema.index({ teacher_alert_sent: 1, createdAt: -1 });
 studentInteractionSchema.index({ intent: 1 });
 
 module.exports = mongoose.model("StudentInteraction", studentInteractionSchema);

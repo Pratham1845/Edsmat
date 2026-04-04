@@ -2,6 +2,7 @@ const FALLBACK_RESPONSE = {
   intent: "NORMAL",
   emotion: "neutral",
   risk_level: "LOW",
+  risk_percentage: 20,
   confidence: 50,
   reason: "Unable to parse model response reliably.",
   recommended_action: "Share a bit more detail so I can support you better.",

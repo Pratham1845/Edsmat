@@ -7,13 +7,13 @@ const CONFIDENCE_THRESHOLD = 0.4;
 const FRESH_SIGNAL_MS = 7000;
 
 export const EMOTION_META = {
-  happy: { emoji: '??', color: '#f0c040' },
-  sad: { emoji: '??', color: '#6096d8' },
-  angry: { emoji: '??', color: '#e05555' },
-  neutral: { emoji: '??', color: '#78909c' },
-  surprised: { emoji: '??', color: '#a070e0' },
-  fearful: { emoji: '??', color: '#50b8b8' },
-  disgusted: { emoji: '??', color: '#70b870' }
+  happy: { emoji: '\u{1F604}', color: '#f0c040' },
+  sad: { emoji: '\u{1F622}', color: '#6096d8' },
+  angry: { emoji: '\u{1F620}', color: '#e05555' },
+  neutral: { emoji: '\u{1F610}', color: '#78909c' },
+  surprised: { emoji: '\u{1F632}', color: '#a070e0' },
+  fearful: { emoji: '\u{1F628}', color: '#50b8b8' },
+  disgusted: { emoji: '\u{1F922}', color: '#70b870' }
 };
 
 export const DEFAULT_COUNTS = {
@@ -29,9 +29,7 @@ export const DEFAULT_COUNTS = {
 const WebcamEmotionContext = createContext(null);
 
 function loadStoredHistory() {
-  if (typeof window === 'undefined') {
-    return [];
-  }
+  if (typeof window === 'undefined') return [];
 
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);
@@ -45,10 +43,7 @@ function loadStoredHistory() {
 function buildCounts(history) {
   return history.reduce((counts, entry) => {
     const emotion = entry?.emotion;
-    if (emotion && counts[emotion] !== undefined) {
-      counts[emotion] += 1;
-    }
-
+    if (emotion && counts[emotion] !== undefined) counts[emotion] += 1;
     return counts;
   }, { ...DEFAULT_COUNTS });
 }
@@ -74,10 +69,12 @@ function createEmotionEntry(emotion, confidence) {
 }
 
 export function WebcamEmotionProvider({ children }) {
-  const videoRef = useRef(null);
+  const processingVideoRef = useRef(null);
   const streamRef = useRef(null);
   const detectionIntervalRef = useRef(null);
   const modelsLoadedRef = useRef(false);
+
+  const [cameraStream, setCameraStream] = useState(null);
   const [emotionLog, setEmotionLog] = useState(loadStoredHistory);
   const [currentEmotion, setCurrentEmotion] = useState(null);
   const [isDetecting, setIsDetecting] = useState(false);
@@ -103,40 +100,32 @@ export function WebcamEmotionProvider({ children }) {
       streamRef.current = null;
     }
 
-    if (videoRef.current) {
-      videoRef.current.srcObject = null;
+    if (processingVideoRef.current) {
+      processingVideoRef.current.srcObject = null;
     }
 
+    setCameraStream(null);
     setIsDetecting(false);
     setCurrentEmotion(null);
-
-    if (!keepStatus) {
-      setStatus('Camera off');
-    }
+    if (!keepStatus) setStatus('Camera off');
   }, []);
 
   useEffect(() => {
-    return () => {
-      stopDetection(true);
-    };
+    return () => stopDetection(true);
   }, [stopDetection]);
 
   const emotionCounts = useMemo(() => buildCounts(emotionLog), [emotionLog]);
 
   const loadModels = useCallback(async () => {
-    if (modelsLoadedRef.current) {
-      return true;
-    }
+    if (modelsLoadedRef.current) return true;
 
     try {
       setIsLoading(true);
       setStatus('Loading models...');
-
       await Promise.all([
         faceapi.nets.tinyFaceDetector.loadFromUri('/models'),
         faceapi.nets.faceExpressionNet.loadFromUri('/models')
       ]);
-
       modelsLoadedRef.current = true;
       setStatus('Ready');
       return true;
@@ -150,26 +139,20 @@ export function WebcamEmotionProvider({ children }) {
   }, []);
 
   const analyzeFrame = useCallback(async () => {
-    if (!videoRef.current || videoRef.current.readyState < 2) {
-      return;
-    }
+    if (!processingVideoRef.current || processingVideoRef.current.readyState < 2) return;
 
     try {
       const detection = await faceapi
         .detectSingleFace(
-          videoRef.current,
+          processingVideoRef.current,
           new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.5 })
         )
         .withFaceExpressions();
 
-      if (!detection?.expressions) {
-        return;
-      }
+      if (!detection?.expressions) return;
 
       const dominant = getDominantEmotion(detection.expressions);
-      if (dominant.score < CONFIDENCE_THRESHOLD) {
-        return;
-      }
+      if (dominant.score < CONFIDENCE_THRESHOLD) return;
 
       const emotionEntry = createEmotionEntry(dominant.emotion, dominant.score);
       setCurrentEmotion(emotionEntry);
@@ -181,23 +164,20 @@ export function WebcamEmotionProvider({ children }) {
   }, []);
 
   const startDetection = useCallback(async () => {
-    if (isDetecting) {
-      return true;
-    }
+    if (isDetecting) return true;
 
     const modelsLoaded = await loadModels();
-    if (!modelsLoaded) {
-      return false;
-    }
+    if (!modelsLoaded) return false;
 
     try {
       setStatus('Starting camera...');
       const stream = await navigator.mediaDevices.getUserMedia({ video: true });
       streamRef.current = stream;
+      setCameraStream(stream);
 
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        await videoRef.current.play();
+      if (processingVideoRef.current) {
+        processingVideoRef.current.srcObject = stream;
+        await processingVideoRef.current.play();
       }
 
       setIsDetecting(true);
@@ -219,44 +199,42 @@ export function WebcamEmotionProvider({ children }) {
   }, []);
 
   const getPromptEmotion = useCallback(() => {
-    if (!isDetecting || !currentEmotion?.emotion) {
-      return '';
-    }
-
-    if (Date.now() - currentEmotion.updatedAt > FRESH_SIGNAL_MS) {
-      return '';
-    }
-
+    if (!isDetecting || !currentEmotion?.emotion) return '';
+    if (Date.now() - currentEmotion.updatedAt > FRESH_SIGNAL_MS) return '';
     return currentEmotion.emotion;
   }, [currentEmotion, isDetecting]);
 
-  const value = useMemo(() => ({
-    isDetecting,
-    isLoading,
-    status,
-    currentEmotion,
-    emotionLog,
-    emotionCounts,
-    startDetection,
-    stopDetection,
-    clearHistory,
-    getPromptEmotion,
-    freshSignalMs: FRESH_SIGNAL_MS
-  }), [clearHistory, currentEmotion, emotionCounts, emotionLog, getPromptEmotion, isDetecting, isLoading, startDetection, status, stopDetection]);
+  const value = useMemo(
+    () => ({
+      cameraStream,
+      isDetecting,
+      isLoading,
+      status,
+      currentEmotion,
+      emotionLog,
+      emotionCounts,
+      startDetection,
+      stopDetection,
+      clearHistory,
+      getPromptEmotion,
+      freshSignalMs: FRESH_SIGNAL_MS
+    }),
+    [cameraStream, clearHistory, currentEmotion, emotionCounts, emotionLog, getPromptEmotion, isDetecting, isLoading, startDetection, status, stopDetection]
+  );
 
   return (
     <WebcamEmotionContext.Provider value={value}>
       {children}
-      <video ref={videoRef} className="hidden" muted playsInline aria-hidden="true" />
+      <video ref={processingVideoRef} className="hidden" muted playsInline aria-hidden="true" />
     </WebcamEmotionContext.Provider>
   );
 }
 
 export function useWebcamEmotion() {
   const context = useContext(WebcamEmotionContext);
-  if (!context) {
-    throw new Error('useWebcamEmotion must be used within a WebcamEmotionProvider');
-  }
-
+  if (!context) throw new Error('useWebcamEmotion must be used within a WebcamEmotionProvider');
   return context;
 }
+
+
+

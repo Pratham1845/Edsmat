@@ -1,8 +1,10 @@
+import { useEffect, useRef } from 'react';
 import Sidebar from '../../components/Sidebar';
 import { DEFAULT_COUNTS, EMOTION_META, useWebcamEmotion } from '../../context/WebcamEmotionContext';
 
 const EmotionPage = () => {
   const {
+    cameraStream,
     isDetecting,
     isLoading,
     status,
@@ -14,7 +16,22 @@ const EmotionPage = () => {
     clearHistory
   } = useWebcamEmotion();
 
+  const previewVideoRef = useRef(null);
   const EMOTIONS = ['happy', 'sad', 'angry', 'neutral', 'surprised', 'fearful', 'disgusted'];
+
+  useEffect(() => {
+    const video = previewVideoRef.current;
+    if (!video) return;
+
+    if (cameraStream) {
+      video.srcObject = cameraStream;
+      video.play().catch(() => {
+        // Ignore autoplay play failures.
+      });
+    } else {
+      video.srcObject = null;
+    }
+  }, [cameraStream]);
 
   const getDominantEmotion = () => {
     const entries = Object.entries(emotionCounts || DEFAULT_COUNTS);
@@ -42,14 +59,14 @@ const EmotionPage = () => {
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Emotion Detection</h1>
           <p className="text-gray-600">
-            The webcam detector runs in the background, so your emotion history keeps updating even when you switch pages.
+            Webcam keeps detecting in background across pages. This screen shows the live camera feed and rolling emotion history.
           </p>
         </div>
 
         <div className="grid lg:grid-cols-2 gap-8">
           <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-bold text-gray-900">Background Camera</h2>
+              <h2 className="text-lg font-bold text-gray-900">Live Camera Feed</h2>
               <div className="flex items-center space-x-2">
                 <div className={`w-2 h-2 rounded-full ${isDetecting ? 'bg-green-500 animate-pulse' : 'bg-gray-400'}`}></div>
                 <span className="text-sm text-gray-600">{status}</span>
@@ -57,21 +74,30 @@ const EmotionPage = () => {
             </div>
 
             <div className="relative bg-gray-900 rounded-lg overflow-hidden aspect-video mb-4">
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="text-center text-gray-300 px-6">
-                  <span className="text-5xl mb-4 block">??</span>
-                  <p className="font-semibold">Camera runs in the background</p>
-                  <p className="text-xs mt-2 text-gray-400">
-                    You can navigate to chatbot, progress, mentors, or dashboard without stopping detection.
-                  </p>
+              <video
+                ref={previewVideoRef}
+                autoPlay
+                muted
+                playsInline
+                className="w-full h-full object-cover"
+                style={{ display: isDetecting ? 'block' : 'none' }}
+              />
+
+              {!isDetecting && (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="text-center text-gray-300 px-6">
+                    <span className="text-5xl mb-4 block">CAM</span>
+                    <p className="font-semibold">Camera is off</p>
+                    <p className="text-xs mt-2 text-gray-400">Start detection to enable background + live preview.</p>
+                  </div>
                 </div>
-              </div>
+              )}
 
               {currentEmotion && isDetecting && (
                 <div className="absolute bottom-4 left-4 right-4 bg-white/90 backdrop-blur-sm rounded-lg p-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
-                      <span className="text-4xl">{currentEmotion.emoji}</span>
+                      <span className="text-3xl font-semibold">{currentEmotion.emoji}</span>
                       <div>
                         <p className="text-lg font-bold text-gray-900 capitalize">{currentEmotion.emotion}</p>
                         <p className="text-sm text-gray-600">{(currentEmotion.confidence * 100).toFixed(1)}% confidence</p>
@@ -132,7 +158,7 @@ const EmotionPage = () => {
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold text-green-600">
-                    {dominant ? `${dominant.emotion} ${dominant.count}` : '—'}
+                    {dominant ? `${dominant.emotion} ${dominant.count}` : '-'}
                   </div>
                   <div className="text-sm text-gray-600">Dominant Emotion</div>
                 </div>
@@ -147,7 +173,7 @@ const EmotionPage = () => {
 
                   return (
                     <div key={emotion} className="flex items-center space-x-3">
-                      <span className="text-lg w-6">{meta.emoji}</span>
+                      <span className="text-sm font-semibold w-10">{meta.emoji}</span>
                       <div className="flex-1">
                         <div className="flex justify-between text-sm mb-1">
                           <span className="capitalize text-gray-700">{emotion}</span>
@@ -156,10 +182,7 @@ const EmotionPage = () => {
                         <div className="w-full bg-gray-200 rounded-full h-2">
                           <div
                             className="h-2 rounded-full transition-all duration-300"
-                            style={{
-                              width: `${percentage}%`,
-                              backgroundColor: meta.color
-                            }}
+                            style={{ width: `${percentage}%`, backgroundColor: meta.color }}
                           ></div>
                         </div>
                       </div>
@@ -176,7 +199,7 @@ const EmotionPage = () => {
                   {emotionLog.slice(-10).reverse().map((entry, index) => (
                     <div key={index} className="flex items-center justify-between py-2 px-3 bg-gray-50 rounded-lg">
                       <div className="flex items-center space-x-2">
-                        <span className="text-lg">{entry.emoji}</span>
+                        <span className="text-sm font-semibold">{entry.emoji}</span>
                         <span className="capitalize text-sm font-medium text-gray-900">{entry.emotion}</span>
                       </div>
                       <div className="text-xs text-gray-500">{(entry.confidence * 100).toFixed(1)}%</div>
@@ -186,13 +209,13 @@ const EmotionPage = () => {
               </div>
             )}
 
-            <div className="bg-gradient-to-br from-yellow-50 to-orange-50 rounded-xl border border-yellow-200 p-6">
-              <h3 className="text-lg font-bold text-gray-900 mb-3">?? Study Tips</h3>
+            <div className="bg-linear-to-br from-yellow-50 to-orange-50 rounded-xl border border-yellow-200 p-6">
+              <h3 className="text-lg font-bold text-gray-900 mb-3">Study Tips</h3>
               <ul className="space-y-2 text-sm text-gray-700">
-                <li>• Take a 5-minute break every 25 minutes</li>
-                <li>• Stay hydrated during study sessions</li>
-                <li>• Maintain good posture for better focus</li>
-                <li>• Use active learning techniques</li>
+                <li>- Take a 5-minute break every 25 minutes</li>
+                <li>- Stay hydrated during study sessions</li>
+                <li>- Maintain good posture for better focus</li>
+                <li>- Use active learning techniques</li>
               </ul>
             </div>
           </div>
@@ -203,3 +226,4 @@ const EmotionPage = () => {
 };
 
 export default EmotionPage;
+

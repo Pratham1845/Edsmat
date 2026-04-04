@@ -1,57 +1,102 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Sidebar from '../../components/Sidebar';
 import AlertCard from '../../components/AlertCard';
-import { students } from '../../data/students';
 
 const Alerts = () => {
   const [filterSeverity, setFilterSeverity] = useState('all');
+  const [alerts, setAlerts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
-  // Generate alerts from student data
-  const alerts = students
-    .filter(student => student.riskScore !== 'low')
-    .map(student => ({
-      id: student.id,
-      title: `${student.riskScore === 'high' ? 'High' : 'Medium'} Risk Alert`,
-      studentName: student.name,
-      severity: student.riskScore,
-      description: `Student is showing signs of disengagement and may be at risk of dropping out.`,
-      reasons: [
-        student.marks < 60 ? `Low academic performance (${student.marks}%)` : null,
-        student.attendance < 70 ? `Poor attendance rate (${student.attendance}%)` : null,
-        student.engagement < 60 ? `Low engagement level (${student.engagement}%)` : null,
-      ].filter(Boolean),
-      metrics: {
-        marks: `${student.marks}%`,
-        attendance: `${student.attendance}%`,
-        engagement: `${student.engagement}%`,
-      },
-    }));
+  const apiUrl = import.meta.env.VITE_CHAT_API_BASE_URL || 'http://localhost:5502';
 
-  const filteredAlerts = filterSeverity === 'all' 
-    ? alerts 
-    : alerts.filter(alert => alert.severity === filterSeverity);
+  useEffect(() => {
+    const loadAlerts = async () => {
+      setLoading(true);
+      setError('');
+
+      try {
+        const response = await fetch(`${apiUrl}/api/teacher-alerts`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch teacher alerts');
+        }
+
+        const payload = await response.json();
+        if (!payload?.success || !Array.isArray(payload.data)) {
+          throw new Error('Unexpected teacher alerts response');
+        }
+
+        const normalized = payload.data.map((item, index) => {
+          const severity = (item.risk_level || 'LOW').toLowerCase();
+          const riskPercentage = Number(item.risk_percentage || 0);
+
+          return {
+            id: item._id || `${item.createdAt || Date.now()}-${index}`,
+            title: `${severity === 'high' ? 'High' : severity === 'medium' ? 'Medium' : 'Low'} Risk Alert`,
+            studentName: 'Student Interaction',
+            severity,
+            description: item.message || 'Alert generated from AI interaction.',
+            reasons: [
+              item.reason || null,
+              `Risk score from Gemini: ${riskPercentage.toFixed(1)}%`,
+              item.threshold_triggered
+                ? `Teacher alert threshold crossed: ${Number(item.threshold_triggered).toFixed(1)}%`
+                : null
+            ].filter(Boolean),
+            metrics: {
+              risk: `${riskPercentage.toFixed(1)}%`,
+              emotion: item.emotion || 'neutral',
+              webcam: item.webcam_emotion || 'not-used'
+            },
+            createdAt: item.createdAt
+          };
+        });
+
+        setAlerts(normalized);
+      } catch (_error) {
+        setError('Unable to load teacher alerts right now.');
+        setAlerts([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadAlerts();
+  }, [apiUrl]);
+
+  const filteredAlerts = useMemo(() => {
+    if (filterSeverity === 'all') {
+      return alerts;
+    }
+    return alerts.filter((alert) => alert.severity === filterSeverity);
+  }, [alerts, filterSeverity]);
 
   return (
     <div className="flex min-h-screen bg-gray-50">
       <Sidebar role="teacher" />
-      
+
       <main className="flex-1 p-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Student Alerts</h1>
           <p className="text-gray-600">Monitor and respond to at-risk student alerts</p>
         </div>
 
-        {/* Summary Cards */}
+        {error && (
+          <div className="mb-6 rounded-lg border border-yellow-300 bg-yellow-50 px-4 py-3 text-sm text-yellow-800">
+            {error}
+          </div>
+        )}
+
         <div className="grid md:grid-cols-3 gap-6 mb-8">
           <div className="bg-red-50 border border-red-200 rounded-xl p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm text-red-600 font-medium mb-1">High Risk</p>
                 <p className="text-3xl font-bold text-red-900">
-                  {alerts.filter(a => a.severity === 'high').length}
+                  {alerts.filter((a) => a.severity === 'high').length}
                 </p>
               </div>
-              <span className="text-4xl">🔴</span>
+              <span className="text-4xl">??</span>
             </div>
           </div>
 
@@ -60,10 +105,10 @@ const Alerts = () => {
               <div>
                 <p className="text-sm text-yellow-600 font-medium mb-1">Medium Risk</p>
                 <p className="text-3xl font-bold text-yellow-900">
-                  {alerts.filter(a => a.severity === 'medium').length}
+                  {alerts.filter((a) => a.severity === 'medium').length}
                 </p>
               </div>
-              <span className="text-4xl">🟡</span>
+              <span className="text-4xl">??</span>
             </div>
           </div>
 
@@ -73,12 +118,11 @@ const Alerts = () => {
                 <p className="text-sm text-blue-600 font-medium mb-1">Total Alerts</p>
                 <p className="text-3xl font-bold text-blue-900">{alerts.length}</p>
               </div>
-              <span className="text-4xl">⚠️</span>
+              <span className="text-4xl">??</span>
             </div>
           </div>
         </div>
 
-        {/* Filter */}
         <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm mb-8">
           <div className="flex items-center justify-between">
             <div>
@@ -99,18 +143,23 @@ const Alerts = () => {
           </div>
         </div>
 
-        {/* Alerts List */}
-        <div className="space-y-4">
-          {filteredAlerts.map(alert => (
-            <AlertCard key={alert.id} alert={alert} />
-          ))}
-        </div>
-
-        {filteredAlerts.length === 0 && (
+        {loading ? (
           <div className="text-center py-12 bg-white rounded-xl border border-gray-200">
-            <span className="text-6xl mb-4 block">✅</span>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Loading alerts...</h3>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {filteredAlerts.map((alert) => (
+              <AlertCard key={alert.id} alert={alert} />
+            ))}
+          </div>
+        )}
+
+        {!loading && filteredAlerts.length === 0 && (
+          <div className="text-center py-12 bg-white rounded-xl border border-gray-200">
+            <span className="text-6xl mb-4 block">?</span>
             <h3 className="text-lg font-semibold text-gray-900 mb-2">No alerts found</h3>
-            <p className="text-gray-600">All students are performing well!</p>
+            <p className="text-gray-600">No teacher thresholds were crossed yet.</p>
           </div>
         )}
       </main>

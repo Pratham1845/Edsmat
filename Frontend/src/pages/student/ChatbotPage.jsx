@@ -125,7 +125,7 @@ const ChatbotPage = () => {
             <div className="bg-linear-to-r from-indigo-600 to-blue-600 px-6 py-4">
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
-                  <span className="text-2xl">??</span>
+                  <span className="text-base font-bold tracking-wide">AI</span>
                 </div>
                 <div>
                   <h2 className="text-white font-semibold">AI Study Assistant</h2>
@@ -215,3 +215,4 @@ const ChatbotPage = () => {
 };
 
 export default ChatbotPage;
+

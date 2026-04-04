@@ -27,7 +27,11 @@ console.log("HF TOKEN:", HF_TOKEN ? "Loaded" : "Missing");
 let sadnessStreak = 0;
 
 // ===== MIDDLEWARE =====
-app.use(cors());
+const allowedOrigins = (process.env.ALLOWED_ORIGINS || "http://localhost:5173").split(",");
+app.use(cors({
+  origin: allowedOrigins,
+  credentials: true
+}));
 app.use(express.json({ limit: "1mb" }));
 
 // ===== SIMPLE RATE LIMIT (IN-MEMORY) =====
@@ -187,31 +191,93 @@ function generateLocalReply(message, emotion) {
 // ===== PROMPT =====
 function buildPrompt(message, emotion) {
   return `
-You are a friendly, supportive AI companion for students.
+You are an AI student support assistant.
 
-Detected emotion: ${emotion}
+You are given:
+1. Student message
+2. Emotion detected by an external AI model
 
-Rules:
-- Be natural and human-like
-- Keep response short (max 60 words)
-- Do not exaggerate emotions
+Your task is to:
+- Analyze student intent
+- Use the provided emotion as the primary emotional signal
+- Predict dropout risk
+- Generate a helpful response
 
-Behavior:
-- Greet if simple message
-- Show empathy if sad/stressed
-- Otherwise be casual
+---
 
-Give:
-- One helpful suggestion
+INPUTS:
 
-Avoid:
-- Dramatic language
-- Long responses
+Detected Emotion (from external model):
+${emotion}
 
-Student message:
+Student Message:
+"""
 ${message}
+"""
+
+---
+
+CLASSIFY INTO:
+
+INTENT TYPES:
+- RISK_DROPOUT → stress, burnout, disengagement
+- PASSION_SHIFT → career change / interest
+- STUDY_DOUBT → academic question
+- NORMAL → general
+
+---
+
+RISK LEVEL:
+LOW, MEDIUM, HIGH
+
+---
+
+IMPORTANT RULES:
+
+- Trust the provided emotion more than text guessing
+- If emotion = sad / stressed / anxious → higher risk probability
+- If emotion = motivated / happy → low risk
+- If STUDY_DOUBT → always LOW risk
+- Do NOT contradict the given emotion
+
+---
+
+GENERATE:
+
+- intent
+- emotion (use given one)
+- risk_level
+- confidence (0–100)
+- reason
+- recommended_action
+- response_message
+
+---
+
+RESPONSE MESSAGE RULES:
+
+- STUDY_DOUBT → explain concept simply
+- RISK_DROPOUT → calm, supportive tone
+- PASSION_SHIFT → encouraging + guidance
+- Keep it short and human-like
+
+---
+
+OUTPUT STRICTLY IN JSON:
+
+{
+  "intent": "",
+  "emotion": "${emotion}",
+  "risk_level": "",
+  "confidence": "",
+  "reason": "",
+  "recommended_action": "",
+  "response_message": ""
+}
 `;
 }
+
+
 
 // ===== SADNESS ALERT =====
 function appendSadnessAlert(emotion, reply) {

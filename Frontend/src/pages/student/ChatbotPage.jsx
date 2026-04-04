@@ -11,8 +11,9 @@ const ChatbotPage = () => {
     }
   ]);
   const [inputMessage, setInputMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSendMessage = (e) => {
+  const handleSendMessage = async (e) => {
     e.preventDefault();
     if (!inputMessage.trim()) return;
 
@@ -24,20 +25,44 @@ const ChatbotPage = () => {
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     };
 
-    setMessages([...messages, userMessage]);
+    setMessages(prev => [...prev, userMessage]);
     setInputMessage('');
+    setIsLoading(true);
 
-    // TODO: Send to backend API and get response
-    // Simulate bot response
-    setTimeout(() => {
+    try {
+      const apiUrl = import.meta.env.VITE_CHAT_API_BASE_URL || 'http://localhost:5502';
+      const response = await fetch(`${apiUrl}/chat`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: userMessage.text })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to get response from AI');
+      }
+
       const botResponse = {
         id: messages.length + 2,
         type: 'bot',
-        text: 'That\'s a great question! Let me help you with that. In the meantime, remember to take regular breaks and stay hydrated during your study sessions.',
+        text: data.reply || 'Sorry, I couldn\'t generate a response. Please try again.',
+        emotion: data.emotion,
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
       };
       setMessages(prev => [...prev, botResponse]);
-    }, 1000);
+    } catch (error) {
+      console.error('Error sending message:', error);
+      const errorMessage = {
+        id: messages.length + 2,
+        type: 'bot',
+        text: `Sorry, there was an error: ${error.message}. Make sure the chat server is running on port 5502.`,
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -100,13 +125,15 @@ const ChatbotPage = () => {
                   value={inputMessage}
                   onChange={(e) => setInputMessage(e.target.value)}
                   placeholder="Type your message..."
-                  className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                  disabled={isLoading}
+                  className="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent disabled:bg-gray-100"
                 />
                 <button
                   type="submit"
-                  className="px-6 py-3 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition-colors"
+                  disabled={isLoading}
+                  className="px-6 py-3 bg-indigo-600 text-white font-semibold rounded-lg hover:bg-indigo-700 transition-colors disabled:bg-indigo-400 disabled:cursor-not-allowed"
                 >
-                  Send
+                  {isLoading ? 'Sending...' : 'Send'}
                 </button>
               </div>
             </form>
